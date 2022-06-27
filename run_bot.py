@@ -1,12 +1,12 @@
 from aiogram.utils import executor
 from create_bot import dp
-from data_base import db
+from data_base import db, new_db
 from handlers import client, register, exercises_save, weight_update, save_exercises_name
 
 
 async def on_startup(_):
     print('bot is online')
-    db.sql_start()
+    await new_db.new_sql_start()
 
 
 client.register_handlers_client(dp)
