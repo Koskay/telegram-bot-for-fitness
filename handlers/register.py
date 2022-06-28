@@ -1,7 +1,7 @@
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
-from data_base import db
+from data_base import db, new_db
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
 
@@ -14,7 +14,7 @@ class FSMClient(StatesGroup):
 
 
 async def cm_start(message: types.Message):
-    user = await db.find_user(message.from_user.id)
+    user = await new_db.find_user(message.from_user.id)
     if user:
         await message.answer('Вы уже зарегистрированы')
     else:
@@ -43,7 +43,7 @@ async def cancel_state(message: types.Message, state: FSMContext):
 async def load_name(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['id'] = message.from_user.id
-        data['name'] = message.text
+        data['username'] = message.text
         await FSMClient.next()
         await message.reply('Введите ваш текущий вес')
 
@@ -53,10 +53,14 @@ async def load_name(message: types.Message, state: FSMContext):
 
 #@dp.message_handler(state=FSMClient.weight)
 async def load_weight(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data['weight'] = float(message.text)
-    await db.add_user(state)
-    await state.finish()
+    if message.text.isdigit():
+        async with state.proxy() as data:
+            data['weight'] = float(message.text)
+        await new_db.add_user(data)
+        await state.finish()
+    else:
+        await message.answer('Введите число\n'
+                             'Или напишите <отмена>, что бы отменить сохранение')
 
 
 '''Регистрация хендлеров'''

@@ -5,23 +5,11 @@ kb_client = ReplyKeyboardMarkup(resize_keyboard=True)
 start_kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
 
 
-# async def categories():
-#     cat = await db.get_categories()
-#     for c in cat:
-#         butt = KeyboardButton(f'/{c[0]}')
-#         kb_client.row(butt)
-
-
 save_data_exercises = KeyboardButton('/Внести_данные')
 get_data_exercises = KeyboardButton('/Просмотр_данных')
 save_name_exercises = KeyboardButton('/Создать_новое_упражнение')
 
 start_kb.add(save_data_exercises).add(get_data_exercises).add(save_name_exercises)
-# b1 = KeyboardButton('/Грудь')
-# b2 = KeyboardButton('/Ноги')
-# b3 = KeyboardButton('/Спина')
-# b4 = KeyboardButton('/Руки')
-# b5 = KeyboardButton('/Плечи')
 
 
 

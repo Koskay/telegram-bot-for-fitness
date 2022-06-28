@@ -2,7 +2,7 @@ from typing import Union
 from aiogram import types, Dispatcher
 from handlers import other, exercises_save , save_exercises_name
 from create_bot import dp
-from data_base import db
+from data_base import db, new_db
 from keyboards import kb_client, client_kb, start_kb, inline_kb
 from keyboards.inline_kb import menu_cd
 
@@ -10,10 +10,10 @@ from keyboards.inline_kb import menu_cd
 #@dp.message_handler(commands=['start'])
 async def command_start(message: types.Message):
     """Команда старт"""
-    user = await db.find_user(message.from_user.id)
-    if user:
+    user = await new_db.find_user(message.from_user.id)
+    if user is not None:
         await message.answer(f'Здравствуйте, {message.from_user.full_name}\n'
-                             f'Ваш вес {user[2]}', reply_markup=start_kb)
+                             f'Ваш вес {user.weight}', reply_markup=start_kb)
     else:
         await message.answer('Зарегистрируйтесь')
 
@@ -58,14 +58,18 @@ async def get_categories(message: Union[types.Message, types.CallbackQuery], **k
 '''Инлайн кнопки с упражнениями'''
 
 
-async def get_sub_categories(callback: types.CallbackQuery, categories, save, **kwargs):
+async def get_sub_categories(callback: types.CallbackQuery, categories: int, save: str, **kwargs):
     user_id = callback.from_user.id
     markup = await inline_kb.sub_categories_kb(categories, save, user_id)
-    await callback.message.edit_reply_markup(markup)
-    await callback.answer('Выберите упражнение')
+    if not markup:
+        await callback.message.answer('У вас пока нет записей')
+    else:
+        await callback.message.edit_reply_markup(markup)
+        await callback.answer('Выберите упражнение')
 
 
-async def get_variable_sub_categories(callback: types.CallbackQuery, categories, save, exercises, **kwargs):
+async def get_variable_sub_categories(callback: types.CallbackQuery, categories: int, save: str,
+                                      exercises: int, **kwargs):
     markup = await inline_kb.variable_sub_categories_kb(categories, save, exercises)
     await callback.message.edit_reply_markup(markup)
 
@@ -73,14 +77,14 @@ async def get_variable_sub_categories(callback: types.CallbackQuery, categories,
 '''Выводит прогресс пользователя'''
 
 
-async def load_progress(callback: types.CallbackQuery, variable, categories, exercises, **kwargs):
+async def load_progress(callback: types.CallbackQuery, variable: str, exercises: int, **kwargs):
     us_id = int(callback.from_user.id)
     if variable == 'Последние результаты':
-        progress = await db.get_progress_user_last(exercises, us_id)
+        progress = await new_db.get_last_progress_user(exercises, us_id)
     elif variable == 'Прогресс за месяц':
         progress = await db.get_progress_user_month(exercises, us_id)
     else:
-        progress = await db.get_progress(exercises, us_id)
+        progress = await new_db.get_progress(exercises, us_id)
     progress_user = other.parse(progress)
     await callback.message.answer(progress_user)
 

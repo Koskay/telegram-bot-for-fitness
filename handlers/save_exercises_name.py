@@ -1,7 +1,7 @@
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
-from data_base import db
+from data_base import db, new_db
 from aiogram.dispatcher.filters.state import State, StatesGroup
 import time
 
@@ -41,9 +41,9 @@ async def cancel_state(message: types.Message, state: FSMContext):
 async def load_name_exercises(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['user_id'] = message.from_user.id
-        data['cat_id'] = categories_id
-        data['name'] = message.text
-    await db.save_exercises_name(state)
+        data['category_id'] = int(categories_id)
+        data['exercise_name'] = message.text
+    await new_db.save_exercises_name(data)
     await state.finish()
     await message.answer('Успешно!')
 

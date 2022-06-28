@@ -1,9 +1,9 @@
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
-from data_base import db
+from data_base import db, new_db
 from aiogram.dispatcher.filters.state import State, StatesGroup
-import time
+import datetime
 
 
 class FSMClientExercisesSave(StatesGroup):
@@ -42,8 +42,8 @@ async def cancel_state(message: types.Message, state: FSMContext):
 async def load_repeats(message: types.Message, state: FSMContext):
     if message.text.isdigit():
         async with state.proxy() as data:
-            data['use_id'] = message.from_user.id
-            data['exerc_id'] = exercise
+            data['user_id'] = message.from_user.id
+            data['exercise_id'] = int(exercise)
             data['weight'] = float(message.text)
             await FSMClientExercisesSave.next()
             await message.reply('Введите кол-во повторов')
@@ -59,9 +59,9 @@ async def load_repeats(message: types.Message, state: FSMContext):
 async def load_weight(message: types.Message, state: FSMContext):
     if message.text.isdigit():
         async with state.proxy() as data:
-            data['repeats'] = float(message.text)
-            data['date'] = str(time.time())
-        await db.save_users_exercises(state)
+            data['repeats'] = int(message.text)
+            # data['date'] = datetime.datetime.now()
+        await new_db.save_users_exercises(data)
         await state.finish()
         await message.answer('Успешно!')
     else:
