@@ -2,9 +2,11 @@ from typing import Union
 from aiogram import types, Dispatcher
 from handlers import other, exercises_save , save_exercises_name
 from create_bot import dp
+from aiogram.dispatcher.filters import Text
 from data_base import db, new_db
 from keyboards import kb_client, client_kb, start_kb, inline_kb
 from keyboards.inline_kb import menu_cd
+import time
 
 
 #@dp.message_handler(commands=['start'])
@@ -45,9 +47,9 @@ async def command_start(message: types.Message):
 
 
 async def get_categories(message: Union[types.Message, types.CallbackQuery], **kwargs):
-    if str(message.get_command()) == '/Внести_данные':
+    if message.text == 'Внести данные':
         save = 'save_data'
-    elif str(message.get_command()) == '/Создать_новое_упражнение':
+    elif message.text == 'Создать новое упражнение':
         save = 'save_name'
     else:
         save = 'get'
@@ -75,18 +77,24 @@ async def get_variable_sub_categories(callback: types.CallbackQuery, categories:
 
 
 '''Выводит прогресс пользователя'''
+msg = []  # список для хранения callback сообщения от бота
 
 
 async def load_progress(callback: types.CallbackQuery, variable: str, exercises: int, **kwargs):
+    if msg:  # если в списке есть сообщения то мы его удаляем из чата и из списка
+        await msg[0].delete()
+        msg.pop()
     us_id = int(callback.from_user.id)
     if variable == 'Последние результаты':
         progress = await new_db.get_last_progress_user(exercises, us_id)
     elif variable == 'Прогресс за месяц':
-        progress = await db.get_progress_user_month(exercises, us_id)
+        progress = await new_db.get_last_month_progress_user(exercises, us_id)
     else:
         progress = await new_db.get_progress(exercises, us_id)
     progress_user = other.parse(progress)
-    await callback.message.answer(progress_user)
+    callback_message = await callback.message.answer(progress_user)  # сохраняем ответ бота в переменную
+    msg.append(callback_message)
+    await callback.answer()
 
 
 # '''Выводит последний введенный прогресс пользователя'''
@@ -153,8 +161,10 @@ async def navigate(call: types.CallbackQuery, callback_data: dict):
 
 def register_handlers_client(dp: Dispatcher):
     dp.register_message_handler(command_start, commands='start')
-    dp.register_message_handler(get_categories, commands=['Просмотр_данных', 'Внести_данные',
-                                                          'Создать_новое_упражнение'])
+    dp.register_message_handler(get_categories, Text(equals=['Просмотр данных', 'Внести данные',
+                                                             'Создать новое упражнение']))
+
+
     # dp.register_message_handler(get_categories, commands='Внести_данные')
     #dp.register_message_handler(command_get_categories, commands=['Просмотр_данных',])
     #dp.register_message_handler(load_progress, commands=['Грудь', 'Ноги', 'Спина', 'Плечи', 'Руки'])

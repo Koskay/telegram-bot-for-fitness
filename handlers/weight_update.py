@@ -1,6 +1,6 @@
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
-from data_base import db
+from data_base import db, new_db
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
 
@@ -21,7 +21,7 @@ async def load_weight_user(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['weight'] = float(message.text)
         data['id'] = message.from_user.id
-    await db.update_user_weight(state)
+    await new_db.update_user_weight(data)
     await state.finish()
 
 

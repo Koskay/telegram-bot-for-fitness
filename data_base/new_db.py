@@ -53,7 +53,7 @@ class Progress(ormar.Model):
     id: int = ormar.Integer(primary_key=True, autoincrement=True)
     weight: float = ormar.Float()
     repeats: int = ormar.Integer()
-    date: datetime.datetime = datetime.datetime.now()
+    date: datetime.datetime = ormar.DateTime(default=datetime.datetime.now())
     user_id: int = ormar.ForeignKey(User)
     exercise_id: int = ormar.ForeignKey(Exercise)
 
@@ -73,7 +73,6 @@ async def add_user(user: dict):
 
 
 async def save_exercises_name(exercises: dict):
-    print(**exercises)
     await Exercise.objects.create(**exercises)
 
 
@@ -92,4 +91,20 @@ async def get_progress(exercise: int, user_id: int):
 
 
 async def get_last_progress_user(exercise: int, user_id: int):
-    pass
+    date = await Progress.objects.filter(exercise_id=exercise, user_id=user_id).max('date')
+    progress = await Progress.objects.filter(exercise_id=exercise, user_id=user_id, date=date).all()
+    return progress
+
+
+async def get_last_month_progress_user(exercise: int, user_id: int):
+    max_date = await Progress.objects.filter(exercise_id=exercise, user_id=user_id).max('date')
+    if max_date is not None:
+        f_date = "%Y-%m-%d %H:%M:%S.%f"
+        date = datetime.datetime.strptime(max_date, f_date) - datetime.timedelta(days=30)
+        progress = await Progress.objects.filter(exercise_id=exercise, user_id=user_id, date__gte=date).all()
+        return [progress[0], progress[-1]]
+    return []
+
+
+async def update_user_weight(user: dict):
+    await User.objects.filter(id=user['id']).update(weight=user['weight'])

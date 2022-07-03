@@ -62,4 +62,11 @@ async def variable_sub_categories_kb(categories_id: int, save: str, exercises_id
             InlineKeyboardButton(text=text, callback_data=data)
         )
 
+    markup.row(
+        InlineKeyboardButton(
+            text='Назад',
+            callback_data=make_callback_data(level=curr_level - 1, category=categories_id, exercises=exercises_id, save=save)
+        )
+    )
+
     return markup
