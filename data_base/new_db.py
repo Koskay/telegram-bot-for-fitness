@@ -1,61 +1,5 @@
-import databases
-import sqlalchemy
-import ormar
+from data_base.models import User, Category, Exercise, Progress
 import datetime
-
-
-metadata = sqlalchemy.MetaData()
-engine = sqlalchemy.create_engine('sqlite:///new_db.db')
-database = databases.Database('sqlite:///new_db.db')
-
-
-async def new_sql_start():
-    metadata.create_all(engine)
-    if not database.is_connected:
-        await database.connect()
-
-
-class User(ormar.Model):
-    class Meta:
-        metadata = metadata
-        database = database
-
-    id: int = ormar.Integer(primary_key=True)
-    username: str = ormar.String(max_length=150)
-    weight: float = ormar.Float()
-
-
-class Category(ormar.Model):
-    class Meta:
-        metadata = metadata
-        database = database
-
-    id: int = ormar.Integer(primary_key=True, autoincrement=True)
-    category_name: str = ormar.String(max_length=150)
-
-
-class Exercise(ormar.Model):
-    class Meta:
-        metadata = metadata
-        database = database
-
-    id: int = ormar.Integer(primary_key=True, autoincrement=True)
-    exercise_name: str = ormar.String(max_length=150)
-    user_id: int = ormar.ForeignKey(User)
-    category_id: int = ormar.ForeignKey(Category)
-
-
-class Progress(ormar.Model):
-    class Meta:
-        metadata = metadata
-        database = database
-
-    id: int = ormar.Integer(primary_key=True, autoincrement=True)
-    weight: float = ormar.Float()
-    repeats: int = ormar.Integer()
-    date: datetime.datetime = ormar.DateTime(default=datetime.datetime.now())
-    user_id: int = ormar.ForeignKey(User)
-    exercise_id: int = ormar.ForeignKey(Exercise)
 
 
 async def get_categories():
@@ -86,13 +30,13 @@ async def save_users_exercises(exercises_progress: dict):
 
 
 async def get_progress(exercise: int, user_id: int):
-    progress = await Progress.objects.filter(exercise_id=exercise, user_id=user_id).all()
+    progress = await Progress.objects.select_related('exercise_id').filter(exercise_id=exercise, user_id=user_id).all()
     return progress
 
 
 async def get_last_progress_user(exercise: int, user_id: int):
     date = await Progress.objects.filter(exercise_id=exercise, user_id=user_id).max('date')
-    progress = await Progress.objects.filter(exercise_id=exercise, user_id=user_id, date=date).all()
+    progress = await Progress.objects.select_related('exercise_id').filter(exercise_id=exercise, user_id=user_id, date=date).all()
     return progress
 
 
@@ -101,8 +45,8 @@ async def get_last_month_progress_user(exercise: int, user_id: int):
     if max_date is not None:
         f_date = "%Y-%m-%d %H:%M:%S.%f"
         date = datetime.datetime.strptime(max_date, f_date) - datetime.timedelta(days=30)
-        progress = await Progress.objects.filter(exercise_id=exercise, user_id=user_id, date__gte=date).all()
-        return [progress[0], progress[-1]]
+        progress = await Progress.objects.select_related('exercise_id').filter(exercise_id=exercise, user_id=user_id, date__gte=date).all()
+        return progress
     return []
 
 

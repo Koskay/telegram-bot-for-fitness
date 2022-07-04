@@ -1,9 +1,8 @@
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
-from data_base import db, new_db
+from data_base import new_db
 from aiogram.dispatcher.filters.state import State, StatesGroup
-import time
 
 
 class FSMClientExercisesNameSave(StatesGroup):
@@ -18,12 +17,12 @@ async def cm_start_save_name(callback: types.CallbackQuery, categories, **kwargs
     categories_id = categories
     await FSMClientExercisesNameSave.name.set()
     await callback.message.answer('Введите название упражнения')
+    await callback.answer()
 
 
 '''Отмена сохранения в бд'''
 
 
-#@dp.message_handler(Text(equals='отмена', ignore_case=True), state='*')
 async def cancel_state(message: types.Message, state: FSMContext):
     current_state = await state.get_state()
     if current_state is None:
@@ -37,7 +36,6 @@ async def cancel_state(message: types.Message, state: FSMContext):
 '''Ловим кол-во повторов'''
 
 
-#@dp.message_handler(state=FSMClient.weight)
 async def load_name_exercises(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['user_id'] = message.from_user.id

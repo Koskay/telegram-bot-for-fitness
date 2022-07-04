@@ -1,9 +1,8 @@
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
-from data_base import db, new_db
+from data_base import new_db
 from aiogram.dispatcher.filters.state import State, StatesGroup
-import datetime
 
 
 class FSMClientExercisesSave(StatesGroup):
@@ -14,7 +13,7 @@ class FSMClientExercisesSave(StatesGroup):
 '''Начало состояния сохранения прогресса'''
 
 
-async def cm_start_save(callback: types.CallbackQuery, categories, exercises, **kwargs,):
+async def cm_start_save(callback: types.CallbackQuery, exercises, **kwargs,):
     global exercise
     exercise = exercises
     await FSMClientExercisesSave.repeats.set()
@@ -24,21 +23,18 @@ async def cm_start_save(callback: types.CallbackQuery, categories, exercises, **
 '''Отмена сохранения в бд'''
 
 
-#@dp.message_handler(Text(equals='отмена', ignore_case=True), state='*')
 async def cancel_state(message: types.Message, state: FSMContext):
     current_state = await state.get_state()
     if current_state is None:
         return
     await state.finish()
     await message.delete()
-    await message.answer('Сохранение отменино')
-    await message.answer('Обращайся')
-
+    msg = await message.answer('Сохранение отменено')
+    await msg.delete()
 
 '''Ловим вес упражнения пользователя'''
 
 
-#@dp.message_handler(state=FSMClient.name)
 async def load_repeats(message: types.Message, state: FSMContext):
     if message.text.isdigit():
         async with state.proxy() as data:
@@ -55,12 +51,10 @@ async def load_repeats(message: types.Message, state: FSMContext):
 '''Ловим кол-во повторов'''
 
 
-#@dp.message_handler(state=FSMClient.weight)
 async def load_weight(message: types.Message, state: FSMContext):
     if message.text.isdigit():
         async with state.proxy() as data:
             data['repeats'] = int(message.text)
-            # data['date'] = datetime.datetime.now()
         await new_db.save_users_exercises(data)
         await state.finish()
         await message.answer('Успешно!')

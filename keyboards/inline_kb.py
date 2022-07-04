@@ -1,19 +1,43 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.callback_data import CallbackData
-from data_base import db, new_db
-import typing
+from data_base import new_db
+
 
 menu_cd = CallbackData('show_result', 'level', 'category', 'exercises', 'user_id', 'save', 'variable')
 
 
 # функция устанавливает параметры по умолчанию, если они не были переданы
-def make_callback_data(level, user_id=0, category=0, exercises=0, save='get', variable=''):
-    return menu_cd.new(level=level, user_id=user_id, category=category, exercises=exercises, save=save, variable=variable)
+def make_callback_data(level=0, user_id=0, category=0, exercises=0, save='get', variable=''):
+    return menu_cd.new(level=level, user_id=user_id, category=category, exercises=exercises,
+                       save=save, variable=variable)
+
+
+async def start_choice():
+    choice = 'Начать'
+    markup = InlineKeyboardMarkup()
+
+    data = make_callback_data()
+    markup.insert(
+        InlineKeyboardButton(text=choice, callback_data=data)
+    )
+    return markup
+
+
+async def choice_of_actions():
+    curr_level = 0
+    choice_dict = {'get': 'Просмотр данных', 'save_p': 'Внести данные', 'save_exercise': 'Создать новое упражнение'}
+    markup = InlineKeyboardMarkup(row_width=1)
+    for var, text in choice_dict.items():
+        data = make_callback_data(save=var, level=curr_level+1)
+        markup.insert(
+            InlineKeyboardButton(text=text, callback_data=data)
+        )
+    return markup
 
 
 # формуриюет инлайн кнопки первого уровня с категориями
 async def categories_kb(save: str):
-    curr_level = 0
+    curr_level = 1
     markup = InlineKeyboardMarkup()
 
     categories = await new_db.get_categories()
@@ -25,6 +49,14 @@ async def categories_kb(save: str):
             InlineKeyboardButton(text=butt_text, callback_data=data)
         )
 
+    markup.row(
+        InlineKeyboardButton(
+            text='Назад',
+            callback_data=make_callback_data(level=curr_level - 1,
+                                             )
+        )
+    )
+
     return markup
 
 
@@ -34,7 +66,7 @@ async def sub_categories_kb(categories_id: int, save: str, user_id: int):
     if not sub_categories:
         markup = False
         return markup
-    curr_level = 1
+    curr_level = 2
     markup = InlineKeyboardMarkup(row_width=1)
     for exercise in sub_categories:
         butt_text = f'{exercise.exercise_name}'
@@ -45,12 +77,20 @@ async def sub_categories_kb(categories_id: int, save: str, user_id: int):
             InlineKeyboardButton(text=butt_text, callback_data=data)
         )
 
+    markup.row(
+        InlineKeyboardButton(
+            text='Назад',
+            callback_data=make_callback_data(level=curr_level - 1, category=categories_id,
+                                             save=save)
+        )
+    )
+
     return markup
 
 
 # инлайн кнопки 3 уровня с вариантами вывода
 async def variable_sub_categories_kb(categories_id: int, save: str, exercises_id: int):
-    curr_level = 2
+    curr_level = 3
     markup = InlineKeyboardMarkup(row_width=1)
 
     butt_text = ['Прогресс за месяц', 'Последние результаты', 'Пргоресс за все время']
@@ -65,7 +105,8 @@ async def variable_sub_categories_kb(categories_id: int, save: str, exercises_id
     markup.row(
         InlineKeyboardButton(
             text='Назад',
-            callback_data=make_callback_data(level=curr_level - 1, category=categories_id, exercises=exercises_id, save=save)
+            callback_data=make_callback_data(level=curr_level - 1, category=categories_id,
+                                             exercises=exercises_id, save=save)
         )
     )
 

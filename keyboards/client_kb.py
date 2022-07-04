@@ -1,5 +1,5 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
-from data_base import db
+
 
 kb_client = ReplyKeyboardMarkup(resize_keyboard=True)
 start_kb = ReplyKeyboardMarkup(

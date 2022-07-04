@@ -1,8 +1,9 @@
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
-from data_base import db, new_db
+from data_base import new_db
 from aiogram.dispatcher.filters.state import State, StatesGroup
+from keyboards import inline_kb
 
 
 class FSMClient(StatesGroup):
@@ -25,7 +26,6 @@ async def cm_start(message: types.Message):
 '''Отмена регистрации'''
 
 
-#@dp.message_handler(Text(equals='отмена', ignore_case=True), state='*')
 async def cancel_state(message: types.Message, state: FSMContext):
     current_state = await state.get_state()
     if current_state is None:
@@ -39,7 +39,6 @@ async def cancel_state(message: types.Message, state: FSMContext):
 '''Ловим имя пользователя'''
 
 
-#@dp.message_handler(state=FSMClient.name)
 async def load_name(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['id'] = message.from_user.id
@@ -51,13 +50,15 @@ async def load_name(message: types.Message, state: FSMContext):
 '''Ловим вес пользователя'''
 
 
-#@dp.message_handler(state=FSMClient.weight)
 async def load_weight(message: types.Message, state: FSMContext):
     if message.text.isdigit():
         async with state.proxy() as data:
             data['weight'] = float(message.text)
         await new_db.add_user(data)
         await state.finish()
+        markup = await inline_kb.start_choice()
+        await message.answer(f'Здравствуйте, {message.from_user.full_name}\n',
+                             reply_markup=markup)
     else:
         await message.answer('Введите число\n'
                              'Или напишите <отмена>, что бы отменить сохранение')
