@@ -13,6 +13,7 @@ async def new_sql_start():
     metadata.create_all(engine)
     if not database.is_connected:
         await database.connect()
+    return database.is_connected
 
 
 class User(ormar.Model):

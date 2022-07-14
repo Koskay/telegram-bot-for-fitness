@@ -1,1 +1,1 @@
-from services import other
+from services import other, setting_commands

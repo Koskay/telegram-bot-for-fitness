@@ -8,12 +8,10 @@ class FSMUpdateClient(StatesGroup):
     weight = State()
 
 
-'''Начало регистрации пользователя'''
-
-
+# Начало регистрации пользователя
 async def cm_weight_user(message: types.Message):
     await FSMUpdateClient.weight.set()
-    await message.reply('Введите вес')
+    await message.reply('Введите ваш текущий вес')
 
 
 async def load_weight_user(message: types.Message, state: FSMContext):
@@ -24,9 +22,7 @@ async def load_weight_user(message: types.Message, state: FSMContext):
     await state.finish()
 
 
-'''Регистрация хендлеров'''
-
-
+# Регистрация хендлеров
 def register_handlers_update_weight(dp: Dispatcher):
-    dp.register_message_handler(cm_weight_user, commands='Вес', state=None)
+    dp.register_message_handler(cm_weight_user, commands='up_weight', state=None)
     dp.register_message_handler(load_weight_user, state=FSMUpdateClient.weight)

@@ -6,29 +6,40 @@ from create_bot import dp
 from data_base import new_db
 from keyboards import inline_kb
 from keyboards.inline_kb import menu_cd
+from emoji import emojize
 
 
-"""Команда старт"""
-
-
+# Команда старт
 async def command_start(message: types.Message):
     user = await new_db.find_user(message.from_user.id)
     if user is not None:
-        markup = await inline_kb.start_choice()
         await message.answer(f'Здравствуйте, {message.from_user.full_name}\n'
-                             f'Ваш вес {user.weight}', reply_markup=markup)
+                             f'Ваш вес {user.weight}')
     else:
-        await message.answer('Зарегистрируйтесь')
+        await message.answer('Вы не зарегистрированы!\n'
+                             'Для регистрации используйте /register')
 
 
+# Команда help
+async def command_help(message: types.Message):
+    await message.answer(other.message_fo_command_help)
+
+
+# Запуск инлайн меню
+async def show_menu(message: types.Message):
+    markup = await inline_kb.start_choice()
+    await message.answer(emojize(":weight_lifter:", language='alias') +
+                         ' Клик' + emojize(":point_down:", language='alias'), reply_markup=markup)
+
+
+# Начало инлайн меню
 async def choice(message: Union[types.Message, types.CallbackQuery], **kwargs):
     markup = await inline_kb.choice_of_actions()
     await message.message.edit_reply_markup(markup)
     await message.answer()
 
-'''Инлайн кнопки с категориями'''
 
-
+# Инлайн кнопки с категориями
 async def get_categories(message: Union[types.Message, types.CallbackQuery], **kwargs):
     if kwargs['save'] == 'save_p':
         save = 'save_data'
@@ -41,9 +52,7 @@ async def get_categories(message: Union[types.Message, types.CallbackQuery], **k
     await message.answer('Выберите категорию')
 
 
-'''Инлайн кнопки с упражнениями'''
-
-
+# Инлайн кнопки с упражнениями
 async def get_sub_categories(callback: types.CallbackQuery, categories: int, save: str, **kwargs):
     user_id = callback.from_user.id
     markup = await inline_kb.sub_categories_kb(categories, save, user_id)
@@ -54,15 +63,14 @@ async def get_sub_categories(callback: types.CallbackQuery, categories: int, sav
         await callback.answer('Выберите упражнение')
 
 
+# Выбор подкатегорий
 async def get_variable_sub_categories(callback: types.CallbackQuery, categories: int, save: str,
                                       exercises: int, **kwargs):
     markup = await inline_kb.variable_sub_categories_kb(categories, save, exercises)
     await callback.message.edit_reply_markup(markup)
 
 
-'''Выводит прогресс пользователя'''
-
-
+# Выводит прогресс пользователя
 async def load_progress(callback: types.CallbackQuery, variable: str, exercises: int, **kwargs):
     us_id = int(callback.from_user.id)
     if variable == 'Последние результаты':
@@ -77,9 +85,7 @@ async def load_progress(callback: types.CallbackQuery, variable: str, exercises:
     await callback.answer()
 
 
-"""При нажатии на инлайн кнопку запускаем нужную функцию"""
-
-
+# При нажатии на инлайн кнопку запускаем нужную функцию
 @dp.callback_query_handler(menu_cd.filter())
 async def navigate(call: types.CallbackQuery, callback_data: dict):
     curr_level = callback_data.get('level')
@@ -118,13 +124,13 @@ async def navigate(call: types.CallbackQuery, callback_data: dict):
     )
 
 
-'''Регистрация хендлеров'''
-
-
+# Регистрация хендлеров
 def register_handlers_client(dp: Dispatcher):
     dp.register_message_handler(command_start, commands='start')
-    # dp.register_message_handler(get_categories, Text(equals=['Просмотр данных', 'Внести данные',
-    #                                                          'Создать новое упражнение']))
+    dp.register_message_handler(command_help, commands='help')
+    dp.register_message_handler(show_menu, commands='menu')
+
+
 
 
 

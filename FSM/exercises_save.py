@@ -10,19 +10,15 @@ class FSMClientExercisesSave(StatesGroup):
     weight = State()
 
 
-'''Начало состояния сохранения прогресса'''
-
-
+# Начало состояния сохранения прогресса
 async def cm_start_save(callback: types.CallbackQuery, exercises, **kwargs,):
     global exercise
     exercise = exercises
     await FSMClientExercisesSave.repeats.set()
-    await callback.message.answer('Введите вес')
+    await callback.message.answer('Введите вес (в кг)')
 
 
-'''Отмена сохранения в бд'''
-
-
+# Отмена сохранения в бд
 async def cancel_state(message: types.Message, state: FSMContext):
     current_state = await state.get_state()
     if current_state is None:
@@ -32,9 +28,8 @@ async def cancel_state(message: types.Message, state: FSMContext):
     msg = await message.answer('Сохранение отменено')
     await msg.delete()
 
-'''Ловим вес упражнения пользователя'''
 
-
+# Ловим вес упражнения пользователя
 async def load_repeats(message: types.Message, state: FSMContext):
     if message.text.isdigit():
         async with state.proxy() as data:
@@ -48,9 +43,7 @@ async def load_repeats(message: types.Message, state: FSMContext):
                              'Или напишите <отмена>, что бы отменить сохранение')
 
 
-'''Ловим кол-во повторов'''
-
-
+# Ловим кол-во повторов
 async def load_weight(message: types.Message, state: FSMContext):
     if message.text.isdigit():
         async with state.proxy() as data:
@@ -63,9 +56,7 @@ async def load_weight(message: types.Message, state: FSMContext):
                              'Или напишите <отмена>, что бы отменить сохранение')
 
 
-'''Регистрация хендлеров'''
-
-
+# Регистрация хендлеров
 def register_handlers_save_progress(dp: Dispatcher):
     dp.register_message_handler(cancel_state, Text(equals='отмена', ignore_case=True), state='*')
     dp.register_message_handler(load_repeats, state=FSMClientExercisesSave.repeats)

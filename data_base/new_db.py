@@ -2,6 +2,16 @@ from data_base.models import User, Category, Exercise, Progress
 import datetime
 
 
+category_list = ['Грудь', 'Спина', 'Ноги', 'Руки', 'Плечи']
+
+
+async def load_categories():
+    load_first_category = await Category.objects.exists()
+    if not load_first_category:
+        for cat in category_list:
+            await Category.objects.create(category_name=cat)
+
+
 async def get_categories():
     categories = await Category.objects.all()
     return categories

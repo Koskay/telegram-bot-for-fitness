@@ -1,19 +1,16 @@
 from aiogram.utils import executor
-from create_bot import dp
-from data_base import models
+from create_bot import dp, bot
+from data_base import models, new_db
 from handlers import client
 from FSM import exercises_save, save_exercises_name, weight_update, register
-
-categories = ['Грудь', 'Спина', 'Ноги', 'Руки', 'Плечи']
+from services import setting_commands
 
 
 async def on_startup(_):
     print('bot is online')
-    await models.new_sql_start()
-    load_first_category = await models.Category.objects.exists()
-    if not load_first_category:
-        for cat in categories:
-            await models.Category.objects.create(category_name=cat)
+    if await models.new_sql_start():
+        await new_db.load_categories()
+    await setting_commands.set_def_com(bot)
 
 
 client.register_handlers_client(dp)

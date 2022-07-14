@@ -9,9 +9,7 @@ class FSMClientExercisesNameSave(StatesGroup):
     name = State()
 
 
-'''Начало состояния сохранения прогресса'''
-
-
+# Начало состояния сохранения прогресса
 async def cm_start_save_name(callback: types.CallbackQuery, categories, **kwargs,):
     global categories_id
     categories_id = categories
@@ -20,9 +18,7 @@ async def cm_start_save_name(callback: types.CallbackQuery, categories, **kwargs
     await callback.answer()
 
 
-'''Отмена сохранения в бд'''
-
-
+# Отмена сохранения в бд
 async def cancel_state(message: types.Message, state: FSMContext):
     current_state = await state.get_state()
     if current_state is None:
@@ -33,9 +29,7 @@ async def cancel_state(message: types.Message, state: FSMContext):
     await message.answer('Обращайся')
 
 
-'''Ловим кол-во повторов'''
-
-
+# Ловим кол-во повторов
 async def load_name_exercises(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['user_id'] = message.from_user.id
@@ -46,9 +40,7 @@ async def load_name_exercises(message: types.Message, state: FSMContext):
     await message.answer('Успешно!')
 
 
-'''Регистрация хендлеров'''
-
-
+# Регистрация хендлеров
 def register_handlers_save_exercises_name(dp: Dispatcher):
     dp.register_message_handler(cancel_state, Text(equals='отмена', ignore_case=True), state='*')
     dp.register_message_handler(load_name_exercises, state=FSMClientExercisesNameSave.name)

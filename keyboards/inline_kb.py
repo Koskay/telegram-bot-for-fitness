@@ -12,9 +12,10 @@ def make_callback_data(level=0, user_id=0, category=0, exercises=0, save='get', 
                        save=save, variable=variable)
 
 
+# старт инлайн меню
 async def start_choice():
     choice = 'Начать'
-    markup = InlineKeyboardMarkup()
+    markup = InlineKeyboardMarkup(resize_keyboard=True)
 
     data = make_callback_data()
     markup.insert(
@@ -23,9 +24,11 @@ async def start_choice():
     return markup
 
 
+# инлайн меню с выбором ветки
 async def choice_of_actions():
     curr_level = 0
-    choice_dict = {'get': 'Просмотр данных', 'save_p': 'Внести данные', 'save_exercise': 'Создать новое упражнение'}
+    choice_dict = {'get': 'Просмотр результатов', 'save_p': 'Сохранить результаты',
+                   'save_exercise': 'Создать новое упражнение'}
     markup = InlineKeyboardMarkup(row_width=1)
     for var, text in choice_dict.items():
         data = make_callback_data(save=var, level=curr_level+1)
@@ -52,8 +55,7 @@ async def categories_kb(save: str):
     markup.row(
         InlineKeyboardButton(
             text='Назад',
-            callback_data=make_callback_data(level=curr_level - 1,
-                                             )
+            callback_data=make_callback_data(level=curr_level - 1,)
         )
     )
 

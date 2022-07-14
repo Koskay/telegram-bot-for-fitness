@@ -11,9 +11,7 @@ class FSMClient(StatesGroup):
     weight = State()
 
 
-'''Начало регистрации пользователя'''
-
-
+# Начало регистрации пользователя
 async def cm_start(message: types.Message):
     user = await new_db.find_user(message.from_user.id)
     if user:
@@ -23,9 +21,7 @@ async def cm_start(message: types.Message):
         await message.reply('Введите имя')
 
 
-'''Отмена регистрации'''
-
-
+# Отмена регистрации
 async def cancel_state(message: types.Message, state: FSMContext):
     current_state = await state.get_state()
     if current_state is None:
@@ -36,9 +32,7 @@ async def cancel_state(message: types.Message, state: FSMContext):
     await message.answer('Обращайся')
 
 
-'''Ловим имя пользователя'''
-
-
+# Ловим имя пользователя
 async def load_name(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['id'] = message.from_user.id
@@ -47,9 +41,7 @@ async def load_name(message: types.Message, state: FSMContext):
         await message.reply('Введите ваш текущий вес')
 
 
-'''Ловим вес пользователя'''
-
-
+# Ловим вес пользователя
 async def load_weight(message: types.Message, state: FSMContext):
     if message.text.isdigit():
         async with state.proxy() as data:
@@ -64,11 +56,9 @@ async def load_weight(message: types.Message, state: FSMContext):
                              'Или напишите <отмена>, что бы отменить сохранение')
 
 
-'''Регистрация хендлеров'''
-
-
+# Регистрация хендлеров
 def register_handlers_register_client(dp: Dispatcher):
-    dp.register_message_handler(cm_start, commands='Регистрация', state=None)
+    dp.register_message_handler(cm_start, commands='register', state=None)
     dp.register_message_handler(cancel_state, Text(equals='отмена', ignore_case=True), state='*')
     dp.register_message_handler(load_name, state=FSMClient.name)
     dp.register_message_handler(load_weight, state=FSMClient.weight)
